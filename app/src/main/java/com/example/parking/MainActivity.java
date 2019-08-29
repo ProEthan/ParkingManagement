@@ -27,7 +27,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ScanButton=findViewById(R.id.ScanButton);
         ParkingNum.setText(ParkingNumber+"");
         ScanButton.setOnClickListener(this);
-        setContentView(R.layout.activity_main);
 
         //测试关联表数据。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
         System.out.println(".......................");
