@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     //扫描函数返回车牌号码
     private String Scan () {
-        String CarNum = null;
+        String CarNum = "1233";
         return CarNum;
     }
 
