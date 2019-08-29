@@ -28,7 +28,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ParkingNum.setText(ParkingNumber+"");
         ScanButton.setOnClickListener(this);
 
-
         //测试关联表数据。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
         System.out.println(".......................");
         garageRelationService.addGarageRelation("A123456" , false , 34);
