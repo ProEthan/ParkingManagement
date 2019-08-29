@@ -18,7 +18,7 @@ public class UserService {
         User user = new User();
         user.setNumber(number);
         user.setUsername(username);
-        user.setIsMonthRent(isMonthRent);
+        user.setMonthRent(isMonthRent);
 
         if (isMonthRent) {
             user.setMonthRentStartTime(System.currentTimeMillis());
