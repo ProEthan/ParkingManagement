@@ -24,7 +24,7 @@ public class LeaveActivity extends AppCompatActivity implements View.OnClickList
         super.onCreate(savedInstanceState);
         setContentView(R.layout.leave);
 
-        PlaceNum = "123";
+        PlaceNum = "123"; // 测试用
         Cost = 333;
 
         CarNumTextView=findViewById(R.id.CarNum);
