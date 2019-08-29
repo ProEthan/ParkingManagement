@@ -30,12 +30,12 @@ public class User extends LitePalSupport {
         this.username = username;
     }
 
-    public Boolean getIsMonthRent() {
+    public Boolean getMonthRent() {
         return isMonthRent;
     }
 
-    public void setIsMonthRent(Boolean isMonthRent) {
-        this.isMonthRent = isMonthRent;
+    public void setMonthRent(Boolean monthRent) {
+        isMonthRent = monthRent;
     }
 
     public Long getMonthRentStartTime() {
