@@ -10,9 +10,9 @@ public class User extends LitePalSupport {
     private String username;
 
     @Column(nullable = false)
-    private byte isMonthRent;
+    private Boolean isMonthRent;
 
-    private long monthRentStartTime;
+    private Long monthRentStartTime;
 
     public String getNumber() {
         return number;
@@ -30,19 +30,19 @@ public class User extends LitePalSupport {
         this.username = username;
     }
 
-    public byte getIsMonthRent() {
+    public Boolean getIsMonthRent() {
         return isMonthRent;
     }
 
-    public void setIsMonthRent(byte isMonthRent) {
+    public void setIsMonthRent(Boolean isMonthRent) {
         this.isMonthRent = isMonthRent;
     }
 
-    public long getMonthRentStartTime() {
+    public Long getMonthRentStartTime() {
         return monthRentStartTime;
     }
 
-    public void setMonthRentStartTime(long monthRentStartTime) {
+    public void setMonthRentStartTime(Long monthRentStartTime) {
         this.monthRentStartTime = monthRentStartTime;
     }
 
