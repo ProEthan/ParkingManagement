@@ -8,12 +8,14 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.parking.service.GarageRelationService;
+import com.example.parking.service.UserService;
 
 import org.litepal.LitePal;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static GarageRelationService garageRelationService = new GarageRelationService();
+    private static UserService userService = new UserService();
 
     private int ParkingNumber=200; //车库可用的车位
     private TextView ParkingNum;
@@ -27,31 +29,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ScanButton=findViewById(R.id.ScanButton);
         ParkingNum.setText(ParkingNumber+"");
         ScanButton.setOnClickListener(this);
-
-        //测试关联表数据。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
-        System.out.println(".......................");
-        garageRelationService.addGarageRelation("A123456" , false , 34);
-        System.out.println(".......................");
-        garageRelationService.addGarageRelation("A889996" , true , 19);
-        System.out.println(".......................");
-        garageRelationService.addGarageRelation("A666688" , false , 28);
-
-        System.out.println(garageRelationService.getAllGarageId());
-
-        System.out.println(garageRelationService.getGarageRelation("A123456"));
-
-        garageRelationService.deleteGarageRelation("A123456");
-
-        System.out.println(garageRelationService.getGarageRelation("A889996"));
-        System.out.println(garageRelationService.getAllGarageId());
-
-        garageRelationService.deleteGarageRelation("A889996");
-        garageRelationService.deleteGarageRelation("A666688");
-
-        System.out.println(garageRelationService.getAllGarageId());
-        System.out.println(garageRelationService.getGarageRelation("A666688"));
-
-        //测试关联表数据。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。。
     }
 
     //调用扫描识别车牌
