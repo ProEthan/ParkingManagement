@@ -26,6 +26,7 @@ import android.widget.Toast;
 import com.alibaba.fastjson.JSONObject;
 import com.example.parking.bean.GarageRelation;
 import com.example.parking.bean.User;
+import com.example.parking.service.DistributionGarageIdService;
 import com.example.parking.service.GarageRelationService;
 import com.example.parking.service.UserService;
 import com.example.parking.util.GetCarCode;
@@ -46,8 +47,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private static GarageRelationService garageRelationService = new GarageRelationService();
     private static UserService userService = new UserService();
+    private static DistributionGarageIdService distributionGarageIdService = new DistributionGarageIdService();
 
-    private int ParkingNumber = 200; //车库可用的车位
+    private int ParkingNumber; //车库可用的车位
     private TextView ParkingNum;
     private Button ScanButton;
     private Button choosePhoto;
@@ -73,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ScanButton = findViewById(R.id.ScanButton);
         choosePhoto = findViewById(R.id.choose_from_album);
         picture = findViewById(R.id.iv_picture);
+        ParkingNumber = new DistributionGarageIdService().leaveGaragedIdNubers();
         ParkingNum.setText(ParkingNumber + "");
         ScanButton.setOnClickListener(this);
         choosePhoto.setOnClickListener(this);
@@ -189,7 +192,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     try {
                         is = cr.openInputStream(uri);
                     } catch (FileNotFoundException e) {
-                        // TODO Auto-generated catch block
                         e.printStackTrace();
                     }
                     bitmap = BitmapFactory.decodeStream(is);
@@ -234,6 +236,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.i("mylog", "请求结果为-->" + val);
             // TODO
             // UI界面的更新等相关操作
+
         }
     };
 
@@ -302,7 +305,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             startActivity(intent);
             // 出库
             // TODO
+            //删除关联表信息
             garageRelationService.deleteGarageRelation(garageRelation.getCarId());
+            //维护set集合信息
+            distributionGarageIdService.outGarageId(garageRelation.getGarageId());
+
         } else { // 停车
             User user = userService.getByNumber(plateNumber);
             if (null == user) {
@@ -314,7 +321,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             } else if (user.getMonthRent()) {
                 // 直接进入
                 // TODO
-                garageRelationService.addGarageRelation(plateNumber, true, 1);
+                //添加关联表信息
+                garageRelationService.addGarageRelation(plateNumber, true, distributionGarageIdService.getGarageId());
                 Toast.makeText(MainActivity.this, "欢迎光临！", Toast.LENGTH_SHORT).show();
             }
 
