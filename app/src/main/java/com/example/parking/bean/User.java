@@ -3,7 +3,9 @@ package com.example.parking.bean;
 import org.litepal.annotation.Column;
 import org.litepal.crud.LitePalSupport;
 
-public class User extends LitePalSupport {
+import java.io.Serializable;
+
+public class User extends LitePalSupport implements Serializable {
     @Column(nullable = false)
     private String number;
 

@@ -34,6 +34,10 @@ public class UserService {
         return userDao.queryByNumber(number);
     }
 
+    public boolean saveOrUpdate(String number, User user) {
+        return userDao.saveOrUpdate(number, user);
+    }
+
     public boolean deleteByNumber(String number) {
         return userDao.deleteByNumber(number);
     }

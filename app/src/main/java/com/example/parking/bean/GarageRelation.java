@@ -2,6 +2,8 @@ package com.example.parking.bean;
 
 import org.litepal.crud.LitePalSupport;
 
+import java.io.Serializable;
+
 /**
  * 车库关系表
  */

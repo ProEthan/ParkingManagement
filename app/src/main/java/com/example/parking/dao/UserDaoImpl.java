@@ -10,6 +10,10 @@ public class UserDaoImpl {
         return user.save();
     }
 
+    public boolean saveOrUpdate(String number, User user) {
+        return user.saveOrUpdate("number = ?", number);
+    }
+
     public User queryByNumber(String number) {
         return LitePal.where("number = ?", number).findFirst(User.class);
 
