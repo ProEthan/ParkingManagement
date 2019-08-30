@@ -32,6 +32,7 @@ import com.example.parking.util.GetCarCode;
 
 import org.litepal.LitePal;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -58,6 +59,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Uri imageUri;
     private static String url;
+
+    //............byte array
+    private static byte[] imagedata;
 
 
     @Override
@@ -152,6 +156,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Bitmap bm = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
                         picture.setImageBitmap(bm);
 
+                        //...........更改的地方..............
+                        if( null != bm ){
+                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                            bm.compress(Bitmap.CompressFormat.PNG, 100, baos);	//注意压缩png和jpg的格式和质量
+                            imagedata = baos.toByteArray();
+                        }
+                        //................................
                         String img = getExternalCacheDir().getCanonicalPath() + "/output_image.jpg";
 //                        System.out.println(GetCarCode.checkFile(img));
                         url = img;
@@ -184,7 +195,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     bitmap = BitmapFactory.decodeStream(is);
                     picture.setImageBitmap(bitmap);
 
-                    if (pathOfPicture != null) {
+
+                    //...........更改的地方..............
+                    if( null != bitmap ){
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);	//注意压缩png和jpg的格式和质量
+                        imagedata = baos.toByteArray();
+                    }
+                    //................................
+                    if (imagedata != null) {
                         new Thread(networkTask).start();
                     }
                 }
@@ -234,7 +253,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Looper.prepare();
             }
             try {
-                String result = GetCarCode.checkFile(url);
+                //。。。。。。。。。。。。。。。。更改的地方
+                String result = GetCarCode.checkFile(imagedata);
+                //。。。。。。。。。。。。。。。。。。
                 System.out.println(result);
                 JSONObject jsonObject = JSONObject.parseObject(result);
 
