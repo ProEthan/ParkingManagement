@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Button;
 
 import com.example.parking.bean.User;
+import com.example.parking.service.DistributionGarageIdService;
 import com.example.parking.service.GarageRelationService;
 import com.example.parking.service.UserService;
 
@@ -18,6 +19,8 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
 
     private UserService userService = new UserService();
     private static GarageRelationService garageRelationService = new GarageRelationService();
+
+    private static DistributionGarageIdService distributionGarageIdService = new DistributionGarageIdService();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +61,8 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
         user.setMonthRentStartTime(System.currentTimeMillis());
         userService.saveOrUpdate(CarNum, user);
 
-        // TODO
-        garageRelationService.addGarageRelation(CarNum, isMonthRent, 1);
+        //添加车库关联信息
+        int garageId = distributionGarageIdService.getGarageId();
+        garageRelationService.addGarageRelation(CarNum, isMonthRent, garageId);
     }
 }

@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.TextView;
 
 import com.example.parking.bean.User;
+import com.example.parking.dao.GarageRelationDao;
+import com.example.parking.service.DistributionGarageIdService;
 
 public class LeaveActivity extends AppCompatActivity implements View.OnClickListener {
     private String CarNum;      //车牌
@@ -43,7 +45,7 @@ public class LeaveActivity extends AppCompatActivity implements View.OnClickList
         CarUserTextView.setText(user.getUsername());
 
 
-        leave();
+        leave(user.getNumber());
         // CarNumTextView.setText(CarNum);
         // CarUserTextView.setText(CarUser);
         PlaceNumTextView.setText(PlaceNum + "");
@@ -54,8 +56,14 @@ public class LeaveActivity extends AppCompatActivity implements View.OnClickList
     }
 
     // 出库 删除数据库相关信息
-    private void leave() {
-        //TODO
+    private void leave(String CarNum) {
+        GarageRelationDao garageRelationDao = new GarageRelationDao();
+        DistributionGarageIdService distributionGarageIdService = new DistributionGarageIdService();
+        //删除关联表相关信息
+        garageRelationDao.deleteGarageRelation(CarNum);
+        //维护set集合
+        distributionGarageIdService.outGarageId(PlaceNum);
+
     }
 
     @Override
