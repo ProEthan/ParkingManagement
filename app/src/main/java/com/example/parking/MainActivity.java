@@ -3,20 +3,17 @@ package com.example.parking;
 import android.Manifest;
 import android.content.ContentResolver;
 import android.content.Intent;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -60,7 +57,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static String[] permissions = {Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     private Uri imageUri;
-    private static String url;
 
     //............byte array
     private static byte[] imagedata;
@@ -141,7 +137,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void getPermission() {
         if (EasyPermissions.hasPermissions(this, permissions)) {
             //已经打开权限
-            Toast.makeText(this, "已经申请相关权限", Toast.LENGTH_SHORT).show();
+            // Toast.makeText(this, "已经申请相关权限", Toast.LENGTH_SHORT).show();
         } else {
             //没有打开相关权限、申请权限
             EasyPermissions.requestPermissions(this, "需要获取您的相册、照相使用权限", 1, permissions);
@@ -159,16 +155,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Bitmap bm = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
                         picture.setImageBitmap(bm);
 
-                        //...........更改的地方..............
-                        if( null != bm ){
+                        if (null != bm) {
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            bm.compress(Bitmap.CompressFormat.PNG, 100, baos);	//注意压缩png和jpg的格式和质量
+                            imageZoom(bm);
+                            bm.compress(Bitmap.CompressFormat.PNG, 100, baos);    //注意压缩png和jpg的格式和质量
                             imagedata = baos.toByteArray();
                         }
-                        //................................
                         String img = getExternalCacheDir().getCanonicalPath() + "/output_image.jpg";
 //                        System.out.println(GetCarCode.checkFile(img));
-                        url = img;
                         new Thread(networkTask).start();
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -179,14 +173,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             // 选择图片
             case CHOOSE_PHOTO:
                 if (resultCode == RESULT_OK) {
-                    Bitmap bitmap = null;
+                    Bitmap bitmap;
                     Uri uri = data.getData();
-                    System.out.println(uri.toString());
-                    String pathOfPicture = getAbsoluteImagePath(uri);
-                    url = pathOfPicture;
-                    System.out.println("ok============================="
-                            + pathOfPicture);
-                    Log.e("uri", uri.getHost());
                     ContentResolver cr = this.getContentResolver();
                     InputStream is = null;
                     try {
@@ -197,14 +185,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     bitmap = BitmapFactory.decodeStream(is);
                     picture.setImageBitmap(bitmap);
 
-
-                    //...........更改的地方..............
-                    if( null != bitmap ){
+                    if (null != bitmap) {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);	//注意压缩png和jpg的格式和质量
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);    //注意压缩png和jpg的格式和质量
                         imagedata = baos.toByteArray();
                     }
-                    //................................
                     if (imagedata != null) {
                         new Thread(networkTask).start();
                     }
@@ -214,31 +199,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    protected String getAbsoluteImagePath(Uri uri) {
-        String[] proj = {MediaStore.Images.Media.DATA};
-        @SuppressWarnings("deprecation")
-        Cursor cursor = this.getContentResolver().query(uri, proj, null, null,
-                null);
-
-        int column_index = cursor
-                .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
-        cursor.moveToFirst();
-
-        return cursor.getString(column_index);
+    private void imageZoom(Bitmap bitMap) {
+        // 图片允许最大空间 单位：KB
+        double maxSize = 2000.00;
+        //将bitmap放至数组中，意在bitmap的大小（与实际读取的原文件要大）
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        bitMap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+        byte[] b = baos.toByteArray();
+        // 将字节换成KB
+        double mid = b.length / 1024;
+        //判断bitmap占用空间是否大于允许最大空间 如果大于则压缩 小于则不压缩
+        if (mid > maxSize) {
+            //获取bitmap大小 是允许最大大小的多少倍
+            double i = mid / maxSize;
+            // 开始压缩 此处用到平方根 将宽带和高度压缩掉对应的平方根倍 （1.保持刻度和高度和原bitmap比率一致，压缩后也达到了最大大小占用空间的大小）
+            bitMap = zoomImage(bitMap, bitMap.getWidth() / Math.sqrt(i),
+                    bitMap.getHeight() / Math.sqrt(i));
+        }
     }
 
-    Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            Bundle data = msg.getData();
-            String val = data.getString("value");
-            Log.i("mylog", "请求结果为-->" + val);
-            // TODO
-            // UI界面的更新等相关操作
-
-        }
-    };
+    public static Bitmap zoomImage(Bitmap bgimage, double newWidth,
+                                   double newHeight) {
+        // 获取这个图片的宽和高
+        float width = bgimage.getWidth();
+        float height = bgimage.getHeight();
+        // 创建操作图片用的matrix对象
+        Matrix matrix = new Matrix();
+        // 计算宽高缩放率
+        float scaleWidth = ((float) newWidth) / width;
+        float scaleHeight = ((float) newHeight) / height;
+        // 缩放图片动作
+        matrix.postScale(scaleWidth, scaleHeight);
+        Bitmap bitmap = Bitmap.createBitmap(bgimage, 0, 0, (int) width,
+                (int) height, matrix, true);
+        return bitmap;
+    }
 
     /**
      * 网络操作相关的子线程
@@ -247,19 +242,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void run() {
-            // TODO
-            // 在这里进行 http request.网络请求相关操作
-//            Message msg = new Message();
-//            Bundle data = new Bundle();
-
+            // 子线程使用Toast
             if (Looper.myLooper() == null) {
                 Looper.prepare();
             }
             try {
-                //。。。。。。。。。。。。。。。。更改的地方
                 String result = GetCarCode.checkFile(imagedata);
-                //。。。。。。。。。。。。。。。。。。
-                System.out.println(result);
                 JSONObject jsonObject = JSONObject.parseObject(result);
 
                 if (jsonObject.getString("error_code") != null) {
@@ -267,44 +255,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Toast.makeText(MainActivity.this, "识别失败，请重试！", Toast.LENGTH_SHORT).show();
                 } else {
                     String plateNumber = jsonObject.getJSONObject("words_result").getString("number");
-
-                    System.out.println(plateNumber);
                     park(plateNumber);
-
-//                    System.out.println("Plate Number : " + plateNumber);
-//                    data.putString("value", result);
-//                    msg.setData(data);
-//                    handler.sendMessage(msg);
                 }
                 Looper.loop();
             } catch (IOException | URISyntaxException e) {
                 e.printStackTrace();
+            } finally {
+                imagedata = null;
             }
         }
     };
 
     private void park(String plateNumber) {
         GarageRelation garageRelation = garageRelationService.getGarageRelation(plateNumber);
-        // 出
+        // 离开停车场
         if (garageRelation != null) {
             User user = userService.getByNumber(plateNumber);
+            // 小时向上取整
             long time = (System.currentTimeMillis() / 1000 - garageRelation.getEntryTime()) / 60 / 60 + 1;
             Intent intent = new Intent(MainActivity.this, LeaveActivity.class);
+
+            // 缴费金额
+            long cost = time * 5;
+            // 传递相关数据
+            intent.putExtra("cost", cost);
+            intent.putExtra("time", time);
+            intent.putExtra("garageId", garageRelation.getGarageId());
+            intent.putExtra("user", user);
             if (garageRelation.getRent()) {
                 // 是月租
                 intent.putExtra("cost", 0L);
-            } else {
-                intent.putExtra("time", time);
             }
-            // 小时向上取整
-            long cost = time * 5;
-            // Toast.makeText(MainActivity.this, "您需要支付 " + cost + "元", Toast.LENGTH_SHORT).show();
-            intent.putExtra("cost", cost);
-            intent.putExtra("garageId", garageRelation.getGarageId());
-            intent.putExtra("user", user);
             startActivity(intent);
+
             // 出库
-            // TODO
             //删除关联表信息
             garageRelationService.deleteGarageRelation(garageRelation.getCarId());
             //维护set集合信息
@@ -320,12 +304,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return;
             } else if (user.getMonthRent()) {
                 // 直接进入
-                // TODO
                 //添加关联表信息
                 garageRelationService.addGarageRelation(plateNumber, true, distributionGarageIdService.getGarageId());
                 Toast.makeText(MainActivity.this, "欢迎光临！", Toast.LENGTH_SHORT).show();
+                return;
             }
 
+            // 进入ChooseActivity
             Intent intent = new Intent(MainActivity.this, ChooseActivity.class);
             intent.putExtra("CarNum", plateNumber);
             intent.putExtra("carUser", user.getUsername());

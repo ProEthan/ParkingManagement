@@ -39,7 +39,11 @@ public class LeaveActivity extends AppCompatActivity implements View.OnClickList
         PlaceNum = getIntent().getIntExtra("garageId", 0);
         time = getIntent().getLongExtra("time", 0L);
         cost = getIntent().getLongExtra("cost", 0L);
+        // 获取反序列化的user
         User user = (User) getIntent().getSerializableExtra("user");
+        if (user.getMonthRent()) {
+            cost = 0L;
+        }
 
         CarNumTextView.setText(user.getNumber());
         CarUserTextView.setText(user.getUsername());
