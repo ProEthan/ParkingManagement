@@ -10,13 +10,17 @@ public class UserDaoImpl {
         return user.save();
     }
 
+    public User queryByNumber(String number) {
+        return LitePal.where("number = ?", number).findFirst(User.class);
+
+    }
+
     public boolean saveOrUpdate(String number, User user) {
         return user.saveOrUpdate("number = ?", number);
     }
 
-    public User queryByNumber(String number) {
-        return LitePal.where("number = ?", number).findFirst(User.class);
-
+    public int updateMonthRentByNumber(String number, User user) {
+        return user.updateAll("number = ?", number);
     }
 
     public boolean deleteByNumber(String number) {

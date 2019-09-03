@@ -54,12 +54,7 @@ public class ChooseActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void registerAndEnter(boolean isMonthRent) {
-        User user = new User();
-        user.setNumber(CarNum);
-        user.setUsername(carUser);
-        user.setMonthRent(isMonthRent);
-        user.setMonthRentStartTime(System.currentTimeMillis());
-        userService.saveOrUpdate(CarNum, user);
+        userService.saveOrUpdate(CarNum, carUser, isMonthRent);
 
         //添加车库关联信息
         int garageId = distributionGarageIdService.getGarageId();

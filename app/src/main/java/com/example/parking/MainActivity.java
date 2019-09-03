@@ -96,14 +96,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    //打开相册
+    // 打开相册
     private void openAlbum() {
         Intent intent = new Intent("android.intent.action.GET_CONTENT");
         intent.setType("image/*");
         startActivityForResult(intent, CHOOSE_PHOTO);
     }
 
-    //扫描函数返回车牌号码
+    // 扫描函数返回车牌号码
     private void scan() {
         getPermission();
 
@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startActivityForResult(intent, TAKE_PHOTO);
     }
 
-    //获取权限
+    // 获取权限
     private void getPermission() {
         if (EasyPermissions.hasPermissions(this, permissions)) {
             //已经打开权限
@@ -153,21 +153,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (resultCode == RESULT_OK) {
                     try {
                         Bitmap bm = BitmapFactory.decodeStream(getContentResolver().openInputStream(imageUri));
-                        picture.setImageBitmap(bm);
 
                         if (null != bm) {
                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                            imageZoom(bm);
+                            bm = rotateBitmap(bm,90);
+                            bm = imageZoom(bm);
+
+                            picture.setImageBitmap(bm);
                             bm.compress(Bitmap.CompressFormat.PNG, 100, baos);    //注意压缩png和jpg的格式和质量
+                            int length = baos.toByteArray().length / 1024;
+                            System.out.println("--------- " + length);
                             imagedata = baos.toByteArray();
                         }
-                        String img = getExternalCacheDir().getCanonicalPath() + "/output_image.jpg";
-//                        System.out.println(GetCarCode.checkFile(img));
                         new Thread(networkTask).start();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-
                 }
                 break;
             // 选择图片
@@ -199,9 +200,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void imageZoom(Bitmap bitMap) {
+    /**
+     * 选择变换
+     *
+     * @param origin 原图
+     * @param alpha  旋转角度，可正可负
+     * @return 旋转后的图片
+     */
+    private Bitmap rotateBitmap(Bitmap origin, float alpha) {
+        if (origin == null) {
+            return null;
+        }
+        int width = origin.getWidth();
+        int height = origin.getHeight();
+        Matrix matrix = new Matrix();
+        matrix.setRotate(alpha);
+        // 围绕原地进行旋转
+        Bitmap newBM = Bitmap.createBitmap(origin, 0, 0, width, height, matrix, false);
+        if (newBM.equals(origin)) {
+            return newBM;
+        }
+        origin.recycle();
+        return newBM;
+    }
+
+    // 压缩图片
+    private Bitmap imageZoom(Bitmap bitMap) {
         // 图片允许最大空间 单位：KB
-        double maxSize = 2000.00;
+        double maxSize = 500.00;
         //将bitmap放至数组中，意在bitmap的大小（与实际读取的原文件要大）
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         bitMap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
@@ -212,10 +238,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mid > maxSize) {
             //获取bitmap大小 是允许最大大小的多少倍
             double i = mid / maxSize;
-            // 开始压缩 此处用到平方根 将宽带和高度压缩掉对应的平方根倍 （1.保持刻度和高度和原bitmap比率一致，压缩后也达到了最大大小占用空间的大小）
+            // 开始压缩 此处用到平方根 将宽带和高度压缩掉对应的平方根倍
+            // （1.保持刻度和高度和原bitmap比率一致，压缩后也达到了最大大小占用空间的大小）
             bitMap = zoomImage(bitMap, bitMap.getWidth() / Math.sqrt(i),
                     bitMap.getHeight() / Math.sqrt(i));
         }
+        return bitMap;
     }
 
     public static Bitmap zoomImage(Bitmap bgimage, double newWidth,
@@ -303,6 +331,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 startActivity(intent);
                 return;
             } else if (user.getMonthRent()) {
+                if ((System.currentTimeMillis() - user.getMonthRentStartTime()) / 1000 / 60 / 60 / 24 > 30) {
+                    int i = userService.monthRentExpired(plateNumber, user.getUsername());
+                    // 避免无限递归
+                    if (i > 0) {
+                        Toast.makeText(MainActivity.this, "月租已到期，请重新选择", Toast.LENGTH_SHORT).show();
+                        park(plateNumber);
+                    }
+                }
                 // 直接进入
                 //添加关联表信息
                 garageRelationService.addGarageRelation(plateNumber, true, distributionGarageIdService.getGarageId());
